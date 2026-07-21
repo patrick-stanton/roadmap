@@ -1,0 +1,14 @@
+#,Name,priority,deliveryDate,FTE-weeks,status,lane,dan-label
+1,name1,4,9/18/2026,5,Not Scoped,Requirements Engineering,FALSE
+2,name2,11,10/19/2026,2,Scoping Needs Improvement,Requirements Engineering,FALSE
+3,name3,9,12/9/2026,10,Not Scoped,Requirements Engineering,FALSE
+4,name4,1,10/22/2026,8,Scoping Needs Improvement,Requirements Engineering,FALSE
+5,name5,10,9/2/2026,6,Scoping Needs Improvement,Requirements Engineering,FALSE
+6,name6,2,9/17/2026,2,Currently Scoped,Requirements Engineering,FALSE
+7,name7,3,9/18/2026,3,Not Scoped,Requirements Engineering,TRUE
+8,name8,5,11/10/2026,6,Not Scoped,Requirements Engineering,FALSE
+9,name9,6,1/1/2027,7,Not Scoped,Model Analysis,FALSE
+10,name10,8,11/27/2026,9,Not Scoped,Model Making,FALSE
+11,name11,12,11/16/2026,1,Currently Scoped,Model Analysis,FALSE
+12,name12,7,9/2/2026,8,Not Scoped,Model Analysis,FALSE
+13,name13,13,11/26/2026,5,Not Scoped,Requirements Engineering,FALSE

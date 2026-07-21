@@ -1,0 +1,1820 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Capability Roadmap</title>
+<style>
+:root{
+  --canvas:#F4F6F9;--surface:#FFFFFF;--surface-2:#FBFCFD;--ink:#17212B;--muted:#64748B;
+  --faint:#94A3B8;--hairline:#E2E8F0;--hairline-2:#EDF1F5;--brand:#1E3A5F;--brand-700:#16324f;
+  --signal:#E8912F;--gold:#E6B422;--danger:#C0392B;--ok:#2E7D5B;
+  --radius:8px;--radius-sm:5px;--row-h:40px;--lane-h:34px;--table-w:340px;
+  --shadow:0 1px 2px rgba(16,32,48,.06),0 8px 24px rgba(16,32,48,.08);
+  --shadow-sm:0 1px 2px rgba(16,32,48,.08);
+  --ui:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--ui);color:var(--ink);background:var(--canvas);
+  -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.45}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:1px;border-radius:4px}
+.mono{font-family:var(--mono)}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* top bar */
+.topbar{display:flex;align-items:center;gap:12px;padding:0 16px;height:56px;background:var(--brand);
+  color:#EAF0F6;flex:0 0 auto}
+.brandmark{display:flex;align-items:center;gap:10px;font-weight:600}
+.brandmark .glyph{width:22px;height:22px;display:block}
+.brandmark small{color:#9DB4CC;font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.proj-name{background:transparent;border:1px solid transparent;color:#fff;font-weight:600;font-size:15px;
+  padding:5px 8px;border-radius:6px;min-width:150px;max-width:26vw}
+.proj-name:hover{border-color:rgba(255,255,255,.22)}
+.proj-name:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.06);outline:none}
+.conn{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#CBD8E6;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);padding:5px 10px;border-radius:20px}
+.conn .dot{width:8px;height:8px;border-radius:50%;background:#7CC29A}
+.conn.standalone .dot{background:#E8B45A}
+.conn .mono{color:#EAF0F6}
+.tabs{display:flex;gap:2px;margin-left:auto;background:rgba(255,255,255,.10);padding:3px;border-radius:8px}
+.tab{border:0;background:transparent;color:#CBD8E6;padding:6px 14px;border-radius:6px;font-weight:600;font-size:13px}
+.tab[aria-selected="true"]{background:#fff;color:var(--brand)}
+.iconbtn{border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.06);color:#EAF0F6;
+  padding:7px 12px;border-radius:7px;font-weight:600;font-size:13px;display:inline-flex;gap:7px;align-items:center}
+.iconbtn:hover{background:rgba(255,255,255,.14)}
+.iconbtn.solid{background:#fff;color:var(--brand);border-color:#fff}
+.iconbtn.solid:hover{background:#EAF0F6}
+
+/* controls */
+.controls{display:flex;align-items:center;gap:16px;padding:9px 16px;background:var(--surface);
+  border-bottom:1px solid var(--hairline);flex:0 0 auto;flex-wrap:wrap}
+.controls.row2{padding-top:0;border-bottom:1px solid var(--hairline)}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ctl input[type=date],.ctl select,.ctl input[type=number],.ctl input[type=search]{
+  border:1px solid var(--hairline);background:var(--surface);border-radius:6px;padding:5px 8px}
+.ctl input[type=search]{width:200px}
+.seg{display:inline-flex;border:1px solid var(--hairline);border-radius:7px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 12px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--hairline)}
+.seg button[aria-pressed="true"]{background:var(--brand);color:#fff}
+.range input[type=range]{width:120px;accent-color:var(--brand)}
+.controls .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--hairline);background:var(--surface);color:var(--ink);padding:7px 13px;border-radius:7px;
+  font-weight:600;font-size:13px;display:inline-flex;gap:7px;align-items:center}
+.btn:hover{border-color:#c8d3de;box-shadow:var(--shadow-sm)}
+.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.primary:hover{background:var(--brand-700)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--brand)}
+.btn.ghost:hover{background:#EEF2F7}
+.btn.small{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.toggle-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--hairline);border-radius:20px;
+  padding:5px 11px;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface)}
+.toggle-pill[aria-pressed="true"]{background:#FBF3E2;border-color:var(--gold);color:#8A6412}
+.toggle-pill .star{color:var(--gold)}
+
+/* board */
+.board{flex:1 1 auto;overflow:auto;position:relative;background:var(--surface)}
+.board-inner{position:relative}
+.head{position:sticky;top:0;z-index:6;display:flex;background:var(--surface);box-shadow:0 1px 0 var(--hairline)}
+.corner{position:sticky;left:0;z-index:7;width:var(--table-w);min-width:var(--table-w);background:var(--surface);
+  border-right:1px solid var(--hairline);display:flex;align-items:flex-end;padding:0 12px 8px;height:52px}
+.corner .col-h{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.08em}
+.corner .h-pri{width:56px}
+.corner .h-name{flex:1}
+.corner .h-dur{width:56px;text-align:right}
+.timeline-head{position:relative;height:52px}
+.month-band{position:absolute;top:0;height:26px;display:flex;align-items:center;padding-left:8px;font-size:12px;
+  font-weight:700;color:var(--ink);border-left:1px solid var(--hairline);white-space:nowrap}
+.month-band.q{color:var(--brand)}
+.week-tick{position:absolute;top:28px;height:22px;font-size:10px;color:var(--faint);font-family:var(--mono);
+  padding-left:4px;border-left:1px solid var(--hairline-2)}
+.week-tick.month{border-left-color:var(--hairline)}
+
+.body{position:relative}
+.grid-overlay{position:absolute;top:0;bottom:0;pointer-events:none;z-index:0}
+.month-line{position:absolute;top:0;bottom:0;width:1px;background:var(--hairline)}
+.today-wire{position:absolute;top:0;bottom:0;width:2px;background:var(--signal);z-index:4;pointer-events:none}
+.today-flag{position:absolute;top:0;transform:translateX(-50%);background:var(--signal);color:#fff;font-size:10px;
+  font-weight:700;padding:1px 6px;border-radius:0 0 5px 5px;font-family:var(--mono)}
+
+/* lane header row */
+.lanehdr{display:flex;height:var(--lane-h);background:#F1F5F9;border-top:1px solid var(--hairline);
+  border-bottom:1px solid var(--hairline)}
+.lanehdr .laneinfo{position:sticky;left:0;z-index:3;width:var(--table-w);min-width:var(--table-w);
+  background:#F1F5F9;border-right:1px solid var(--hairline);display:flex;align-items:center;gap:9px;padding:0 12px;
+  cursor:pointer;font-weight:700;font-size:13px}
+.lanehdr .chev{transition:transform .15s;color:var(--muted)}
+.lanehdr.collapsed .chev{transform:rotate(-90deg)}
+.lanehdr .laneaccent{width:8px;height:16px;border-radius:3px;flex:0 0 auto}
+.lanehdr .cnt{font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:600}
+.lanehdr .laneband{position:relative;flex:0 0 auto;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(30,58,95,.03) 8px,rgba(30,58,95,.03) 9px)}
+
+.row{display:flex;height:var(--row-h);border-bottom:1px solid var(--hairline-2)}
+.row:hover .rowinfo{background:#F3F7FB}
+.row.drop-above{box-shadow:inset 0 2px 0 var(--brand)}
+.row.drop-below{box-shadow:inset 0 -2px 0 var(--brand)}
+.row.dragging{opacity:.4}
+.rowinfo{position:sticky;left:0;z-index:2;width:var(--table-w);min-width:var(--table-w);background:var(--surface);
+  border-right:1px solid var(--hairline);display:flex;align-items:center;gap:8px;padding:0 12px}
+.handle{cursor:grab;color:var(--faint);width:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.handle:active{cursor:grabbing}
+.pri{width:26px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:700;flex:0 0 auto}
+.statusdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.danstar{color:var(--gold);flex:0 0 auto;font-size:13px;line-height:1}
+.namecell{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.namecell .nm{border:1px solid transparent;background:transparent;font-weight:600;font-size:13px;color:var(--ink);
+  padding:2px 4px;border-radius:5px;width:100%;text-overflow:ellipsis}
+.namecell .nm:hover{border-color:var(--hairline)}
+.namecell .nm:focus{border-color:var(--brand);background:#fff;outline:none}
+.namecell .sub{font-family:var(--mono);font-size:10px;color:var(--faint);padding-left:4px}
+.durcell{width:52px;flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:3px}
+.durcell input{width:32px;text-align:right;border:1px solid transparent;background:transparent;border-radius:5px;
+  padding:2px 3px;font-family:var(--mono);font-size:12px;font-weight:600}
+.durcell input:hover{border-color:var(--hairline)}
+.durcell input:focus{border-color:var(--brand);background:#fff;outline:none}
+.durcell .u{font-size:9px;color:var(--faint)}
+.rowinfo .more{opacity:0;border:0;background:transparent;color:var(--faint);padding:2px;border-radius:5px}
+.row:hover .rowinfo .more{opacity:1}
+.rowinfo .more:hover{background:#E7EEF5;color:var(--brand)}
+
+.track{position:relative;height:var(--row-h);flex:0 0 auto;
+  background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(var(--pw) - 1px),var(--hairline-2) calc(var(--pw) - 1px),var(--hairline-2) var(--pw))}
+.bar{position:absolute;top:6px;height:calc(var(--row-h) - 12px);border-radius:6px;display:flex;align-items:center;
+  padding:0 9px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;
+  box-shadow:0 1px 2px rgba(16,32,48,.18)}
+.bar .barlabel{overflow:hidden;text-overflow:ellipsis}
+.bar.dan{box-shadow:0 0 0 2px var(--gold),0 0 0 4px rgba(230,180,34,.30),0 1px 2px rgba(16,32,48,.2)}
+.bar.dan::before{content:"\2605";position:absolute;left:-1px;top:-11px;color:var(--gold);font-size:11px;
+  text-shadow:0 1px 1px rgba(0,0,0,.25)}
+.bar-outside{position:absolute;top:9px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap}
+.duemark{position:absolute;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;
+  border-top:7px solid var(--ink);top:1px;transform:translateX(-5px);opacity:.55}
+
+.tip{position:fixed;z-index:50;background:var(--ink);color:#fff;padding:8px 10px;border-radius:7px;font-size:12px;
+  line-height:1.5;pointer-events:none;box-shadow:var(--shadow);max-width:280px;display:none}
+.tip .k{color:#9DB4CC}.tip .mono{color:#D7E2EE}
+
+/* legend (also acts as status filter) */
+.legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:8px 16px;border-top:1px solid var(--hairline);
+  background:var(--surface-2);flex:0 0 auto}
+.legend .lbl{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+.legend .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);border:1px solid var(--hairline);
+  background:var(--surface);border-radius:20px;padding:3px 10px;cursor:pointer;font-weight:600}
+.legend .chip[aria-pressed="false"]{opacity:.4}
+.legend .chip .sw{width:12px;height:12px;border-radius:3px}
+.legend .chip.static{cursor:default}
+.legend .chip.static .goldsw{width:12px;height:12px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px var(--gold)}
+.legend .chip.static .duesw{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid var(--ink)}
+.legend .chip.static .todaysw{width:3px;height:13px;background:var(--signal);border-radius:1px}
+
+.statusbar{display:flex;align-items:center;gap:18px;padding:6px 16px;background:var(--brand);color:#B9CBDE;
+  font-size:12px;flex:0 0 auto}
+.statusbar .mono{color:#EAF0F6}
+.statusbar .dirty{margin-left:auto;display:none;color:var(--signal);font-weight:600}
+.statusbar .dirty.show{display:inline}
+
+/* empty state */
+.empty{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.empty .card{max-width:600px;text-align:center;background:var(--surface);border:1px solid var(--hairline);
+  border-radius:14px;padding:40px 36px;box-shadow:var(--shadow)}
+.empty h2{margin:0 0 6px;font-size:22px}
+.empty p{margin:0 auto 22px;color:var(--muted);max-width:460px}
+.empty .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.empty .hint{margin-top:18px;font-size:12px;color:var(--faint)}
+.emblem{width:56px;height:56px;margin:0 auto 14px;color:var(--brand)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(16,32,48,.35);z-index:40;display:none}
+.scrim.show{display:block}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:400px;max-width:92vw;background:var(--surface);z-index:41;
+  box-shadow:-8px 0 30px rgba(16,32,48,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.7,.2,1);
+  display:flex;flex-direction:column}
+.drawer.show{transform:none}
+.drawer header{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--hairline)}
+.drawer header h3{margin:0;font-size:15px}
+.drawer header .uid{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.drawer .body-scroll{padding:18px;overflow:auto;flex:1}
+.field{margin-bottom:16px}
+.field>label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:6px}
+.field input[type=text],.field input[type=number],.field input[type=date],.field textarea,.field select{
+  width:100%;border:1px solid var(--hairline);border-radius:7px;padding:8px 10px;background:var(--surface)}
+.field textarea{min-height:60px;resize:vertical;line-height:1.5}
+.field .hint{font-size:11px;color:var(--faint);margin-top:5px}
+.two{display:flex;gap:12px}.two .field{flex:1}
+.toggle{display:flex;align-items:center;gap:10px}
+.switch{position:relative;width:40px;height:22px;background:var(--hairline);border-radius:20px;transition:.2s;flex:0 0 auto}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.2s}
+.switch[aria-pressed="true"]{background:var(--gold)}
+.switch[aria-pressed="true"]::after{left:20px}
+.drawer footer{padding:14px 18px;border-top:1px solid var(--hairline);display:flex;gap:8px;align-items:center}
+.drawer footer .btn.danger{margin-left:auto;color:var(--danger);border-color:#EBD3D0}
+.drawer footer .btn.danger:hover{background:#FBEEEC}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:45;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal .panel{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);width:660px;max-width:96vw;
+  max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal header{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--hairline)}
+.modal header h3{margin:0;font-size:16px}
+.modal header .btn{margin-left:auto}
+.modal .content{padding:20px;overflow:auto}
+.modal footer{padding:14px 20px;border-top:1px solid var(--hairline);display:flex;gap:8px;justify-content:flex-end}
+.dropzone{border:2px dashed var(--hairline);border-radius:10px;padding:26px;text-align:center;color:var(--muted);
+  background:var(--surface-2);transition:.15s}
+.dropzone.over{border-color:var(--brand);background:#EEF3F8;color:var(--brand)}
+.maprow{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-items:center;margin-top:6px}
+.maprow .lab{font-size:12px;font-weight:600;color:var(--ink)}
+.maprow .req{color:var(--danger)}
+.maprow select{width:100%;border:1px solid var(--hairline);border-radius:7px;padding:7px 9px}
+.preview-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.preview-table th,.preview-table td{border:1px solid var(--hairline);padding:5px 8px;text-align:left;white-space:nowrap;
+  max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.preview-table th{background:var(--surface-2);font-weight:700;font-family:var(--mono);font-size:11px}
+textarea.paste{width:100%;min-height:120px;border:1px solid var(--hairline);border-radius:8px;padding:10px;
+  font-family:var(--mono);font-size:12px}
+.tabsmini{display:flex;gap:4px;margin-bottom:14px}
+.tabsmini button{border:1px solid var(--hairline);background:var(--surface);padding:6px 12px;border-radius:7px;
+  font-weight:600;font-size:13px;color:var(--muted)}
+.tabsmini button[aria-selected="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);
+  color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:500;box-shadow:var(--shadow);
+  opacity:0;transition:.25s;z-index:60;pointer-events:none;display:flex;align-items:center;gap:9px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#7A2018}
+.toast .ok{color:#7CE0A6}
+
+/* present */
+.present{position:fixed;inset:0;z-index:35;background:#fff;display:none;flex-direction:column}
+.present.show{display:flex}
+.present .p-head{padding:22px 34px 12px;display:flex;align-items:flex-end;gap:16px;border-bottom:1px solid var(--hairline)}
+.present .p-head h1{margin:0;font-size:26px;letter-spacing:-.01em}
+.present .p-head .sub{color:var(--muted);font-size:13px;font-family:var(--mono)}
+.present .p-head .exit{margin-left:auto}
+.present .p-board{flex:1;overflow:auto;position:relative}
+.present .corner,.present .rowinfo,.present .laneinfo{--table-w:300px}
+
+@media (max-width:720px){
+  :root{--table-w:220px}
+  .tabs{order:3;margin-left:0}
+  .topbar{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brandmark">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="4" width="12" height="4" rx="1.5" fill="#7FB2E6"/>
+        <rect x="6" y="10" width="14" height="4" rx="1.5" fill="#EAF0F6"/>
+        <rect x="4" y="16" width="9" height="4" rx="1.5" fill="#E8912F"/>
+      </svg>
+      <span>Capability Roadmap <small>Planner</small></span>
+    </div>
+    <input class="proj-name" id="projName" value="Use Case Roadmap" aria-label="Project name" />
+    <span class="conn standalone" id="connPill"><span class="dot"></span><span id="connText">Browser only</span></span>
+    <div class="tabs" role="tablist" aria-label="View">
+      <button class="tab" role="tab" data-view="roadmap" aria-selected="true">Roadmap</button>
+      <button class="tab" role="tab" data-view="present" aria-selected="false">Present</button>
+    </div>
+    <button class="iconbtn" id="btnImport">Import</button>
+    <button class="iconbtn solid" id="btnSave">Save</button>
+  </div>
+
+  <div class="controls" id="controls">
+    <div class="ctl"><label for="startDate">Start</label><input type="date" id="startDate" /></div>
+    <div class="ctl"><label>Sort in lane</label>
+      <div class="seg" id="sortSeg" role="group" aria-label="Sort">
+        <button data-sort="priority" aria-pressed="true">Priority</button>
+        <button data-sort="delivery" aria-pressed="false">Delivery date</button>
+      </div>
+    </div>
+    <div class="ctl"><label>Density</label>
+      <div class="seg" id="densitySeg" role="group" aria-label="Density">
+        <button data-density="comfortable" aria-pressed="true">Comfortable</button>
+        <button data-density="compact" aria-pressed="false">Compact</button>
+      </div>
+    </div>
+    <div class="ctl"><label>Zoom</label><span class="range"><input type="range" id="zoom" min="8" max="56" value="22" /></span></div>
+    <div class="right">
+      <button class="btn ghost" id="btnCollapse">Collapse all</button>
+      <button class="btn ghost" id="btnFit">Fit</button>
+      <button class="btn" id="btnAdd">+ Add use case</button>
+    </div>
+  </div>
+  <div class="controls row2" id="controls2">
+    <div class="ctl"><input type="search" id="search" placeholder="Search use cases…" aria-label="Search" /></div>
+    <button class="toggle-pill" id="danOnly" aria-pressed="false"><span class="star">&#9733;</span> Dan-labeled only</button>
+    <span class="ctl" style="color:var(--faint);font-size:12px" id="filterCount"></span>
+    <div class="right">
+      <button class="btn ghost small" id="btnDownloadCanonical">Download CSV</button>
+      <button class="btn ghost small" id="btnDownloadAnalysis">Download analysis CSV</button>
+      <button class="btn ghost small" id="btnReload" style="display:none">Reload from disk</button>
+    </div>
+  </div>
+
+  <div id="mount" style="flex:1;display:flex;flex-direction:column;overflow:hidden"></div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="statusbar">
+    <span id="stTasks" class="mono">0 use cases</span>
+    <span id="stLanes" class="mono">—</span>
+    <span id="stSpan" class="mono"></span>
+    <span class="dirty" id="stDirty">&#9679; unsaved changes</span>
+  </div>
+</div>
+
+<div class="present" id="presentView">
+  <div class="p-head">
+    <div><h1 id="pTitle">Use Case Roadmap</h1><div class="sub" id="pSub"></div></div>
+    <button class="btn exit" id="btnExitPresent">Exit presentation</button>
+  </div>
+  <div class="p-board" id="pBoard"></div>
+  <div class="legend" id="pLegend"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Use case details"></aside>
+
+<div class="modal" id="modal">
+  <div class="panel">
+    <header><h3 id="modalTitle">Import CSV</h3><button class="btn ghost" id="modalClose">Close</button></header>
+    <div class="content" id="modalContent"></div>
+    <footer id="modalFooter"></footer>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept=".csv,text/csv" style="display:none" />
+
+<script>
+/* ==== INLINED gantt-core.js (identical to the Node-tested file) ==== */
+/* =============================================================================
+ * gantt-core.js
+ * -----------------------------------------------------------------------------
+ * Pure, DOM-free logic for the Capability Roadmap tool.
+ *
+ * WHY this file exists separately from the user interface (UI):
+ *   The scheduling and CSV (Comma-Separated Values) logic is the part that must
+ *   be correct — a wrong bar position or a mangled export is not recoverable
+ *   once decisions have been made and pushed back to Cameo. Keeping it free of
+ *   any browser / Document Object Model (DOM) dependency lets us run it under
+ *   Node.js and assert its behaviour with real tests. The *exact same file* is
+ *   then inlined into the single-file app, so what we test is what ships.
+ *
+ * Exposes a single object `GanttCore`. Works in the browser (as a global) and
+ * under Node.js (via module.exports) with no build step.
+ * ===========================================================================*/
+(function (root) {
+  'use strict';
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 1 — CSV parsing & serialization
+   * Cameo Systems Modeler (a Model-Based Systems Engineering [MBSE] tool)
+   * exports tables to CSV. Real-world exports are messy: a leading Byte Order
+   * Mark (BOM), quoted fields containing commas/newlines, doubled quotes as an
+   * escape, and locale-dependent delimiters (comma vs. semicolon). We handle
+   * all of these rather than assuming a clean file.
+   * -------------------------------------------------------------------------*/
+
+  /** Remove a leading UTF-8 BOM if present (Excel/Cameo frequently add one). */
+  function stripBOM(text) {
+    return text && text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  }
+
+  /** Return the substring up to the first line break (for delimiter sniffing). */
+  function firstLine(text) {
+    const i = text.search(/\r\n|\r|\n/);
+    return i === -1 ? text : text.slice(0, i);
+  }
+
+  /**
+   * Guess the field delimiter by counting candidate characters that sit OUTSIDE
+   * quotes on the header line. We do this because we cannot know the locale of
+   * the machine that produced the Cameo export.
+   */
+  function detectDelimiter(text) {
+    const line = firstLine(stripBOM(text || ''));
+    const counts = { ',': 0, ';': 0, '\t': 0, '|': 0 };
+    let inQuotes = false;
+    for (const ch of line) {
+      if (ch === '"') inQuotes = !inQuotes;
+      else if (!inQuotes && counts.hasOwnProperty(ch)) counts[ch]++;
+    }
+    let best = ',';
+    let bestN = -1;
+    for (const d in counts) {
+      if (counts[d] > bestN) {
+        bestN = counts[d];
+        best = d;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Parse CSV text into an array of string arrays (rows of cells).
+   * Implements RFC-4180-style quoting: fields may be wrapped in double quotes,
+   * and a doubled quote ("") inside a quoted field is a literal quote.
+   *
+   * @param {string} text      Raw file contents.
+   * @param {string} [delim]   Delimiter; auto-detected when omitted.
+   * @returns {{rows: string[][], delimiter: string}}
+   */
+  function parseCSV(text, delim) {
+    text = stripBOM(text || '');
+    const delimiter = delim || detectDelimiter(text);
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    let i = 0;
+    const n = text.length;
+
+    while (i < n) {
+      const ch = text[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') {
+            field += '"';
+            i += 2;
+            continue;
+          }
+          inQuotes = false;
+          i++;
+          continue;
+        }
+        field += ch;
+        i++;
+        continue;
+      }
+      // Not inside quotes:
+      if (ch === '"') {
+        inQuotes = true;
+        i++;
+        continue;
+      }
+      if (ch === delimiter) {
+        row.push(field);
+        field = '';
+        i++;
+        continue;
+      }
+      if (ch === '\r') {
+        i++;
+        continue; // handled by the \n branch (CRLF) or ignored (lone CR)
+      }
+      if (ch === '\n') {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+        i++;
+        continue;
+      }
+      field += ch;
+      i++;
+    }
+    // Flush the final field/row (files may not end in a newline).
+    row.push(field);
+    rows.push(row);
+
+    // Drop a trailing empty row produced when the file ends with a newline.
+    if (
+      rows.length &&
+      rows[rows.length - 1].length === 1 &&
+      rows[rows.length - 1][0] === ''
+    ) {
+      rows.pop();
+    }
+    return { rows: rows, delimiter: delimiter };
+  }
+
+  /**
+   * Parse CSV into records keyed by header name.
+   * Blank/duplicate headers are made safe so no column is silently lost.
+   *
+   * @returns {{headers: string[], records: Object[], delimiter: string}}
+   */
+  function parseTable(text, delim) {
+    const { rows, delimiter } = parseCSV(text, delim);
+    if (!rows.length) return { headers: [], records: [], delimiter: delimiter };
+    const seen = {};
+    const headers = rows[0].map(function (h, idx) {
+      let name = (h || '').trim() || 'Column ' + (idx + 1);
+      if (seen[name] != null) {
+        seen[name]++;
+        name = name + ' (' + seen[name] + ')';
+      } else {
+        seen[name] = 0;
+      }
+      return name;
+    });
+    const records = [];
+    for (let r = 1; r < rows.length; r++) {
+      const cells = rows[r];
+      // Skip fully blank lines.
+      if (cells.length === 1 && cells[0].trim() === '') continue;
+      const obj = {};
+      headers.forEach(function (h, c) {
+        obj[h] = c < cells.length ? cells[c] : '';
+      });
+      records.push(obj);
+    }
+    return { headers: headers, records: records, delimiter: delimiter };
+  }
+
+  /** Quote a single cell only when required by the delimiter/quote/newline rules. */
+  function escapeCell(value, delimiter) {
+    const v = value == null ? '' : String(value);
+    if (
+      v.indexOf('"') !== -1 ||
+      v.indexOf(delimiter) !== -1 ||
+      v.indexOf('\n') !== -1 ||
+      v.indexOf('\r') !== -1
+    ) {
+      return '"' + v.replace(/"/g, '""') + '"';
+    }
+    return v;
+  }
+
+  /**
+   * Serialize an array of record objects back to CSV.
+   * Uses CRLF line endings for maximum compatibility with Excel and Cameo.
+   */
+  function toCSV(headers, records, delim) {
+    const delimiter = delim || ',';
+    const lines = [
+      headers
+        .map(function (h) {
+          return escapeCell(h, delimiter);
+        })
+        .join(delimiter),
+    ];
+    for (const rec of records) {
+      lines.push(
+        headers
+          .map(function (h) {
+            return escapeCell(rec[h], delimiter);
+          })
+          .join(delimiter)
+      );
+    }
+    return lines.join('\r\n');
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 2 — value coercion helpers
+   * -------------------------------------------------------------------------*/
+
+  /** Parse a number, tolerating stray text/units; returns `fallback` on failure. */
+  function parseNumber(value, fallback) {
+    if (value == null || value === '') return fallback;
+    const n = parseFloat(String(value).replace(/[^0-9.\-]/g, ''));
+    return isFinite(n) ? n : fallback;
+  }
+
+  /**
+   * Convert a free-text priority into a sortable number where LOWER = HIGHER
+   * priority. Accepts numbers ("1", "2") or words ("High", "Must", "Low").
+   */
+  function priorityToRank(value) {
+    if (value == null || value === '') return 999;
+    const s = String(value).trim().toLowerCase();
+    const words = {
+      critical: 0,
+      blocker: 0,
+      highest: 1,
+      must: 1,
+      'must-have': 1,
+      high: 2,
+      should: 2,
+      'should-have': 2,
+      medium: 3,
+      med: 3,
+      normal: 3,
+      could: 3,
+      moderate: 3,
+      low: 4,
+      'nice-to-have': 5,
+      lowest: 5,
+      wont: 6,
+      "won't": 6,
+    };
+    if (words[s] != null) return words[s];
+    const n = parseFloat(s);
+    return isFinite(n) ? n : 999;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 3 — dates and week math
+   * The roadmap's unit is the week. Everything on the timeline is expressed as
+   * an integer "week index" relative to the project start (index 0). We anchor
+   * weeks to Monday so bar edges land on clean week boundaries.
+   * -------------------------------------------------------------------------*/
+
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  /** Parse a date from ISO (YYYY-MM-DD) or M/D/YYYY; returns null on failure. */
+  function parseDate(value) {
+    if (!value) return null;
+    const s = String(value).trim();
+    if (!s) return null;
+    // ISO first (unambiguous, preferred).
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) {
+      const d = new Date(+m[1], +m[2] - 1, +m[3]);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    // Then M/D/YYYY or M-D-YYYY (US-style, the common Cameo/Excel default).
+    m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if (m) {
+      let year = +m[3];
+      if (year < 100) year += 2000;
+      const d = new Date(year, +m[1] - 1, +m[2]);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  /** Snap a date to the Monday that begins its week (local time). */
+  function startOfWeek(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dow = (d.getDay() + 6) % 7; // 0 = Monday
+    d.setDate(d.getDate() - dow);
+    return d;
+  }
+
+  /** Whole-week offset of `date` from the project start (can be negative). */
+  function weekIndex(date, projectStart) {
+    const a = startOfWeek(projectStart).getTime();
+    const b = startOfWeek(date).getTime();
+    return Math.round((b - a) / (7 * MS_PER_DAY));
+  }
+
+  /** Inverse of weekIndex: the Monday date for a given week index. */
+  function weekToDate(index, projectStart) {
+    const d = startOfWeek(projectStart);
+    d.setDate(d.getDate() + index * 7);
+    return d;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 4 — dependency ordering (topological sort)
+   * A task may depend on others (precedence). We order tasks so every task
+   * comes after its prerequisites. Among tasks that are equally "ready", we
+   * break ties by the user's rank (lower rank = higher priority). This is the
+   * mechanism behind "bump based on precedence": rank chooses who goes first,
+   * but precedence can never be violated.
+   * -------------------------------------------------------------------------*/
+
+  /**
+   * Kahn's algorithm with a rank-aware tie-break.
+   * @returns {{order: string[], hadCycle: boolean}}
+   *   `order` always contains every task; if a cycle exists the offending
+   *   tasks are appended in rank order so nothing is dropped.
+   */
+  function topoOrder(tasks) {
+    const byId = {};
+    const indeg = {};
+    const adj = {};
+    tasks.forEach(function (t) {
+      byId[t.uid] = t;
+      indeg[t.uid] = 0;
+      adj[t.uid] = [];
+    });
+    tasks.forEach(function (t) {
+      (t.deps || []).forEach(function (d) {
+        if (byId[d]) {
+          adj[d].push(t.uid); // edge prerequisite -> dependent
+          indeg[t.uid]++;
+        }
+      });
+    });
+
+    const cmp = function (a, b) {
+      const ra = byId[a].rank;
+      const rb = byId[b].rank;
+      if (ra !== rb) return ra - rb;
+      return String(a).localeCompare(String(b));
+    };
+
+    let ready = tasks
+      .filter(function (t) {
+        return indeg[t.uid] === 0;
+      })
+      .map(function (t) {
+        return t.uid;
+      });
+
+    const order = [];
+    while (ready.length) {
+      ready.sort(cmp);
+      const u = ready.shift();
+      order.push(u);
+      adj[u].forEach(function (v) {
+        if (--indeg[v] === 0) ready.push(v);
+      });
+    }
+
+    const hadCycle = order.length !== tasks.length;
+    if (hadCycle) {
+      const seen = {};
+      order.forEach(function (u) {
+        seen[u] = true;
+      });
+      tasks
+        .slice()
+        .sort(function (a, b) {
+          return cmp(a.uid, b.uid);
+        })
+        .forEach(function (t) {
+          if (!seen[t.uid]) order.push(t.uid);
+        });
+    }
+    return { order: order, hadCycle: hadCycle };
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 5 — the scheduler
+   * Two modes:
+   *   'forward' — capacity-constrained list scheduling. Tasks are placed as
+   *               early as possible in priority order, across `lanes` parallel
+   *               work streams (the unknown build-team capacity), always after
+   *               their prerequisites finish. This is what makes reprioritizing
+   *               visibly reshape the roadmap.
+   *   'fixed'   — honour the target completion dates from the CSV; each bar ends
+   *               on its completion week and runs backwards by its duration.
+   * -------------------------------------------------------------------------*/
+
+  /**
+   * Forward, capacity-constrained schedule.
+   * @param {Object[]} tasks  {uid, duration, deps[], rank, type, anchorStart?}
+   * @param {number}   lanes  Number of parallel work streams (>=1).
+   * @returns {Object<string,{startWeek:number,finishWeek:number,lane:number}>}
+   */
+  function scheduleForward(tasks, lanes) {
+    const byId = {};
+    tasks.forEach(function (t) {
+      byId[t.uid] = t;
+    });
+    const order = topoOrder(tasks).order;
+    const laneFree = new Array(Math.max(1, lanes | 0 || 1)).fill(0);
+    const finish = {};
+    const result = {};
+
+    order.forEach(function (uid) {
+      const t = byId[uid];
+      // Earliest start = after every prerequisite finishes, and after any anchor
+      // the user has pinned by dragging the bar.
+      let earliest = 0;
+      (t.deps || []).forEach(function (d) {
+        if (finish[d] != null) earliest = Math.max(earliest, finish[d]);
+      });
+      if (t.anchorStart != null) earliest = Math.max(earliest, t.anchorStart);
+
+      if (t.type === 'milestone') {
+        // Milestones are zero-duration markers; they do not consume capacity.
+        result[uid] = { startWeek: earliest, finishWeek: earliest, lane: -1 };
+        finish[uid] = earliest;
+        return;
+      }
+
+      const dur = Math.max(0, t.duration || 0);
+      // Pack into the latest-freeing lane that is already free by `earliest`
+      // (keeps lanes dense); otherwise take the lane that frees soonest and wait.
+      let packLane = -1;
+      for (let l = 0; l < laneFree.length; l++) {
+        if (laneFree[l] <= earliest) {
+          if (packLane < 0 || laneFree[l] > laneFree[packLane]) packLane = l;
+        }
+      }
+      let lane = packLane;
+      if (lane < 0) {
+        lane = 0;
+        for (let l = 1; l < laneFree.length; l++) {
+          if (laneFree[l] < laneFree[lane]) lane = l;
+        }
+      }
+      const start = Math.max(earliest, laneFree[lane]);
+      const fin = start + dur;
+      result[uid] = { startWeek: start, finishWeek: fin, lane: lane };
+      laneFree[lane] = fin;
+      finish[uid] = fin;
+    });
+    return result;
+  }
+
+  /**
+   * Fixed-date schedule from target completion weeks.
+   * Tasks with no completion date fall back to their forward position so they
+   * are never silently stacked at week zero.
+   */
+  function scheduleFixed(tasks, lanes) {
+    const forward = scheduleForward(tasks, lanes);
+    const result = {};
+    tasks.forEach(function (t) {
+      const dur = t.type === 'milestone' ? 0 : Math.max(0, t.duration || 0);
+      if (t.completionWeek != null) {
+        result[t.uid] = {
+          startWeek: t.completionWeek - dur,
+          finishWeek: t.completionWeek,
+          lane: -1,
+        };
+      } else {
+        result[t.uid] = forward[t.uid];
+      }
+    });
+    return result;
+  }
+
+  /** Dispatch to the requested schedule mode. */
+  function schedule(tasks, opts) {
+    opts = opts || {};
+    const mode = opts.mode || 'forward';
+    const lanes = opts.lanes || 1;
+    return mode === 'fixed'
+      ? scheduleFixed(tasks, lanes)
+      : scheduleForward(tasks, lanes);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 6 — validation (surfaced as gentle warnings, never blocking)
+   * -------------------------------------------------------------------------*/
+
+  /**
+   * Produce human-readable warnings: unknown dependency references, cycles, and
+   * rank/precedence conflicts (a task ranked above one of its prerequisites).
+   * @returns {{level:string, message:string}[]}
+   */
+  function validate(tasks) {
+    const warnings = [];
+    const byId = {};
+    tasks.forEach(function (t) {
+      byId[t.uid] = t;
+    });
+
+    tasks.forEach(function (t) {
+      (t.deps || []).forEach(function (d) {
+        if (!byId[d]) {
+          warnings.push({
+            level: 'error',
+            message:
+              'Task "' + t.name + '" depends on unknown id "' + d + '".',
+          });
+        }
+      });
+    });
+
+    if (topoOrder(tasks).hadCycle) {
+      warnings.push({
+        level: 'error',
+        message:
+          'A circular dependency was detected. Affected tasks are scheduled by rank until the loop is broken.',
+      });
+    }
+
+    tasks.forEach(function (t) {
+      (t.deps || []).forEach(function (d) {
+        const pre = byId[d];
+        if (pre && pre.rank > t.rank) {
+          warnings.push({
+            level: 'warn',
+            message:
+              '"' +
+              t.name +
+              '" is ranked above its prerequisite "' +
+              pre.name +
+              '". Precedence still holds, but the order looks inconsistent.',
+          });
+        }
+      });
+    });
+    return warnings;
+  }
+
+  /** New rank order (as a uid->rank map) that respects all precedence links. */
+  function autoFixRanks(tasks) {
+    const order = topoOrder(tasks).order;
+    const map = {};
+    order.forEach(function (uid, i) {
+      map[uid] = i + 1;
+    });
+    return map;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SECTION 7 — color & contrast
+   * Status drives bar color. To keep labels legible on any status color, we pick
+   * black or white text from the fill's relative luminance (WCAG-style), so the
+   * caller never has to hand-tune readability.
+   * -------------------------------------------------------------------------*/
+
+  /** Parse "#RRGGBB" (or "#RGB") into [r,g,b] 0-255; returns null on failure. */
+  function hexToRgb(hex) {
+    if (!hex) return null;
+    var h = String(hex).trim().replace(/^#/, '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  /** Relative luminance (0=black,1=white) using the sRGB coefficients. */
+  function relLuminance(hex) {
+    var rgb = hexToRgb(hex);
+    if (!rgb) return 0;
+    var a = rgb.map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+  }
+
+  /** Choose readable text ('#fff' or a dark ink) for a given background fill. */
+  function readableText(hex) {
+    return relLuminance(hex) > 0.5 ? '#16202B' : '#FFFFFF';
+  }
+
+  /** Format a Date as M/D/YYYY to round-trip the uploaded deliveryDate style. */
+  function usDate(d) {
+    return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+  }
+
+  /** Coerce common truthy spellings ("TRUE","yes","1") to a boolean. */
+  function parseBool(v) {
+    if (v === true) return true;
+    if (v == null) return false;
+    return /^(true|yes|y|1|t)$/i.test(String(v).trim());
+  }
+
+  /* ---------------------------------------------------------------------------
+   * Public surface
+   * -------------------------------------------------------------------------*/
+  const GanttCore = {
+    stripBOM: stripBOM,
+    detectDelimiter: detectDelimiter,
+    parseCSV: parseCSV,
+    parseTable: parseTable,
+    toCSV: toCSV,
+    parseNumber: parseNumber,
+    priorityToRank: priorityToRank,
+    parseDate: parseDate,
+    startOfWeek: startOfWeek,
+    weekIndex: weekIndex,
+    weekToDate: weekToDate,
+    topoOrder: topoOrder,
+    schedule: schedule,
+    scheduleForward: scheduleForward,
+    scheduleFixed: scheduleFixed,
+    validate: validate,
+    autoFixRanks: autoFixRanks,
+    hexToRgb: hexToRgb,
+    relLuminance: relLuminance,
+    readableText: readableText,
+    usDate: usDate,
+    parseBool: parseBool,
+  };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = GanttCore; // Node.js (tests)
+  } else {
+    root.GanttCore = GanttCore; // Browser (app)
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* ============================================================================
+ * app_ui.js — interface layer for the Use Case Roadmap.
+ * Depends only on the global GanttCore (DOM-free, unit-tested) and the DOM.
+ *
+ * Positioning model (capacity intentionally deferred): each bar ends on its
+ * deliveryDate and extends left by its FTE-weeks. Tasks are grouped into
+ * collapsible swimlanes by `lane`, colored by `status`, and flagged with a gold
+ * ring when `dan-label` is TRUE. Runs in two modes: served by the Python
+ * companion (edits persist to the CSV on disk) or opened as a bare file
+ * (edits download as CSV).
+ * ==========================================================================*/
+(function () {
+  'use strict';
+  var C = window.GanttCore;
+
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $all(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function fmtDate(d) { return MONTHS[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getFullYear(); }
+  function isoOf(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function mondayISO() { return isoOf(C.startOfWeek(new Date())); }
+  function cssq(s) { return String(s).replace(/"/g, '\\"'); }
+
+  /* ---- state ------------------------------------------------------------- */
+  var state = {
+    projectName: 'Use Case Roadmap',
+    startISO: mondayISO(),
+    sort: 'priority',            // 'priority' | 'delivery'
+    density: 'comfortable',
+    pxPerWeek: 22,
+    view: 'roadmap',
+    tasks: [],                   // canonical order == priority order
+    laneOrder: [],
+    collapsed: {},               // lane -> bool
+    search: '',
+    danOnly: false,
+    hiddenStatuses: {},          // status -> true (filtered out)
+    connection: { mode: 'standalone', file: null, exists: false },
+    dirty: false,
+  };
+
+  /* Task shape:
+     {id, name, priority(sort seed), deliveryISO, fteWeeks, status, lane, dan, notes} */
+
+  function markDirty() { state.dirty = true; var d = $('#stDirty'); if (d) d.classList.add('show'); }
+  function clearDirty() { state.dirty = false; var d = $('#stDirty'); if (d) d.classList.remove('show'); }
+
+  /* ---- status colors (auto-contrast text) -------------------------------- */
+  var KNOWN_STATUS = [
+    [/complete|done|closed|delivered/i, '#3E8E5A'],
+    [/in ?progress|in ?work|working|active|dev/i, '#4C6EF5'],
+    [/currently scoped|fully scoped|^scoped$/i, '#2F86C4'],
+    [/needs improvement|partial|rework|draft/i, '#E08A2B'],
+    [/not scoped|unscoped|backlog|new|todo/i, '#7A8896'],
+    [/blocked|at risk|on hold|hold/i, '#C0392B'],
+  ];
+  var STATUS_FALLBACK = ['#7C6BD6', '#2FA9A0', '#B0873A', '#C0556E', '#5C8A3A', '#3B82C4', '#4A6572'];
+
+  function distinctStatuses() {
+    var seen = {}, out = [];
+    state.tasks.forEach(function (t) {
+      var s = t.status || '';
+      if (!(s in seen)) { seen[s] = 1; out.push(s); }
+    });
+    return out;
+  }
+  function statusColors() {
+    var map = {}, fi = 0;
+    distinctStatuses().forEach(function (s) {
+      if (s === '') { map[s] = { fill: '#B8C2CE', text: C.readableText('#B8C2CE') }; return; }
+      var fill = null;
+      for (var i = 0; i < KNOWN_STATUS.length; i++) { if (KNOWN_STATUS[i][0].test(s)) { fill = KNOWN_STATUS[i][1]; break; } }
+      if (!fill) { fill = STATUS_FALLBACK[fi % STATUS_FALLBACK.length]; fi++; }
+      map[s] = { fill: fill, text: C.readableText(fill) };
+    });
+    return map;
+  }
+
+  /* ---- layout (due-date positioning) ------------------------------------- */
+  function taskDuration(t) { return Math.max(1, Math.round(t.fteWeeks || 1)); }
+  function taskFinishWeek(t, start) {
+    if (t.deliveryISO) { var d = C.parseDate(t.deliveryISO); if (d) return C.weekIndex(d, start); }
+    return taskDuration(t); // no date: sit at the front
+  }
+  function layoutFor(tasks) {
+    var start = C.parseDate(state.startISO) || new Date();
+    var minStart = 0, maxFinish = 8, pos = {};
+    tasks.forEach(function (t) {
+      var fin = taskFinishWeek(t, start), st = fin - taskDuration(t);
+      pos[t.id] = { startWeek: st, finishWeek: fin };
+      if (st < minStart) minStart = st;
+      if (fin > maxFinish) maxFinish = fin;
+    });
+    var weekStart = Math.min(0, minStart), weekEnd = maxFinish + 2;
+    return { pos: pos, weekStart: weekStart, weekEnd: weekEnd, totalWeeks: weekEnd - weekStart, start: start };
+  }
+
+  /* ---- filtering & grouping ---------------------------------------------- */
+  function visibleTasks() {
+    var q = state.search.trim().toLowerCase();
+    return state.tasks.filter(function (t) {
+      if (state.danOnly && !t.dan) return false;
+      if (state.hiddenStatuses[t.status || '']) return false;
+      if (q && !((t.name || '').toLowerCase().indexOf(q) >= 0 ||
+        String(t.id).indexOf(q) >= 0 || (t.lane || '').toLowerCase().indexOf(q) >= 0)) return false;
+      return true;
+    });
+  }
+  function lanesOf(tasks) {
+    // Preserve laneOrder, append any new lanes seen.
+    var present = {};
+    tasks.forEach(function (t) { present[t.lane || 'Unassigned'] = 1; });
+    state.laneOrder.forEach(function (l) { present[l] = present[l] || 0; });
+    var ordered = state.laneOrder.filter(function (l) { return present[l]; });
+    Object.keys(present).forEach(function (l) { if (ordered.indexOf(l) < 0) ordered.push(l); });
+    return ordered;
+  }
+  function sortInLane(tasks) {
+    var start = C.parseDate(state.startISO) || new Date();
+    if (state.sort === 'delivery') {
+      return tasks.slice().sort(function (a, b) {
+        return taskFinishWeek(a, start) - taskFinishWeek(b, start) ||
+          (state.tasks.indexOf(a) - state.tasks.indexOf(b));
+      });
+    }
+    return tasks.slice().sort(function (a, b) { return state.tasks.indexOf(a) - state.tasks.indexOf(b); });
+  }
+
+  /* ========================================================================
+   * RENDER
+   * ======================================================================*/
+  function render() {
+    $('#app').style.display = state.view === 'present' ? 'flex' : 'flex';
+    $('#presentView').classList.toggle('show', state.view === 'present');
+    $all('.tab').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.view === state.view ? 'true' : 'false'); });
+    document.documentElement.style.setProperty('--row-h', state.density === 'compact' ? '30px' : '40px');
+
+    if (state.view === 'present') { renderPresent(); return; }
+
+    renderControls();
+    if (!state.tasks.length) { renderEmpty(); }
+    else { renderBoard($('#mount'), true); }
+    renderLegend($('#legend'), true);
+    renderStatus();
+  }
+
+  function renderControls() {
+    $('#projName').value = state.projectName;
+    $('#startDate').value = state.startISO;
+    $('#zoom').value = state.pxPerWeek;
+    $all('#sortSeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.sort === state.sort ? 'true' : 'false'); });
+    $all('#densitySeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.density === state.density ? 'true' : 'false'); });
+    $('#danOnly').setAttribute('aria-pressed', state.danOnly ? 'true' : 'false');
+    $('#search').value = state.search;
+    // connection-dependent affordances
+    var connected = state.connection.mode === 'connected';
+    $('#connPill').className = 'conn' + (connected ? '' : ' standalone');
+    $('#connText').innerHTML = connected
+      ? 'Local file: <span class="mono">' + esc(state.connection.file) + '</span>'
+      : 'Browser only';
+    $('#btnSave').textContent = connected ? 'Save' : 'Download';
+    $('#btnReload').style.display = connected ? '' : 'none';
+  }
+
+  function renderEmpty() {
+    $('#mount').innerHTML =
+      '<div class="empty"><div class="card">' +
+      '<svg class="emblem" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="13" height="4" rx="1.5" fill="#7FB2E6"/>' +
+      '<rect x="6" y="10" width="15" height="4" rx="1.5" fill="#1E3A5F"/><rect x="3" y="16" width="10" height="4" rx="1.5" fill="#E8912F"/></svg>' +
+      '<h2>Load your use cases</h2>' +
+      '<p>Import a CSV with the columns <span class="mono">#, Name, priority, deliveryDate, FTE-weeks, status, lane, dan-label</span>, ' +
+      'or load the sample to explore. Tasks group into lanes, color by status, and gold-ring the dan-labeled ones.</p>' +
+      '<div class="actions"><button class="btn primary" id="emptyImport">Import CSV</button>' +
+      '<button class="btn" id="emptySample">Load sample data</button></div>' +
+      '<div class="hint">Opened as a plain file, edits download as CSV. Run it with the Python companion to save straight to disk.</div>' +
+      '</div></div>';
+    $('#emptyImport').onclick = openImport;
+    $('#emptySample').onclick = function () { loadSample(); };
+  }
+
+  function renderBoard(container, interactive) {
+    var vis = visibleTasks();
+    var L = layoutFor(vis.length ? vis : state.tasks);
+    var pw = state.pxPerWeek;
+    var colors = statusColors();
+    var totalW = L.totalWeeks * pw;
+    var tableW = interactive ? 340 : 300;
+    var lanes = lanesOf(vis);
+
+    var h = '<div class="board"><div class="board-inner" style="--pw:' + pw + 'px">';
+    h += '<div class="head"><div class="corner" style="width:' + tableW + 'px;min-width:' + tableW + 'px">' +
+      '<span class="col-h h-pri">Pri</span><span class="col-h h-name">Use case</span><span class="col-h h-dur">Wks</span></div>' +
+      '<div class="timeline-head" style="width:' + totalW + 'px">' + headerHTML(L, pw) + '</div></div>';
+
+    h += '<div class="body" style="width:' + (tableW + totalW) + 'px">';
+    h += overlayHTML(L, pw, tableW);
+
+    lanes.forEach(function (lane) {
+      var laneTasks = sortInLane(vis.filter(function (t) { return (t.lane || 'Unassigned') === lane; }));
+      var collapsed = !!state.collapsed[lane];
+      var totalFte = laneTasks.reduce(function (a, t) { return a + (t.fteWeeks || 0); }, 0);
+      h += '<div class="lanehdr' + (collapsed ? ' collapsed' : '') + '" data-lane="' + esc(lane) + '">' +
+        '<div class="laneinfo" style="width:' + tableW + 'px;min-width:' + tableW + 'px">' +
+        '<span class="chev">' + chevronSVG() + '</span>' +
+        '<span class="laneaccent" style="background:' + laneAccent(lane) + '"></span>' +
+        '<span>' + esc(lane) + '</span>' +
+        '<span class="cnt">' + laneTasks.length + ' UC · ' + totalFte + ' FTE-wk</span></div>' +
+        '<div class="laneband" style="width:' + totalW + 'px"></div></div>';
+      if (collapsed) return;
+      laneTasks.forEach(function (t) { h += rowHTML(t, L, pw, tableW, colors, interactive); });
+    });
+
+    h += todayHTML(L, pw, tableW);
+    h += '</div></div></div>';
+    container.innerHTML = h;
+
+    if (interactive) wireBoard(container);
+    else wireTooltips(container);
+  }
+
+  function headerHTML(L, pw) {
+    var h = '', w = L.weekStart;
+    while (w < L.weekEnd) {
+      var d = C.weekToDate(w, L.start), m = d.getMonth(), y = d.getFullYear(), wEnd = w;
+      while (wEnd < L.weekEnd) { var dd = C.weekToDate(wEnd, L.start); if (dd.getMonth() !== m || dd.getFullYear() !== y) break; wEnd++; }
+      var x = (w - L.weekStart) * pw, width = (wEnd - w) * pw, isQ = (m % 3 === 0);
+      h += '<div class="month-band' + (isQ ? ' q' : '') + '" style="left:' + x + 'px;width:' + width + 'px">' + MONTHS[m] + (isQ ? ' ' + y : '') + '</div>';
+      w = wEnd;
+    }
+    var step = pw >= 20 ? 1 : (pw >= 12 ? 2 : 4);
+    for (var wk = L.weekStart; wk < L.weekEnd; wk++) {
+      if ((wk - L.weekStart) % step !== 0) continue;
+      var dt = C.weekToDate(wk, L.start), isMonth = dt.getDate() <= 7;
+      h += '<div class="week-tick' + (isMonth ? ' month' : '') + '" style="left:' + ((wk - L.weekStart) * pw) + 'px">' + dt.getDate() + '</div>';
+    }
+    return h;
+  }
+  function overlayHTML(L, pw, tableW) {
+    var h = '<div class="grid-overlay" style="left:0;right:0">';
+    for (var wk = L.weekStart; wk < L.weekEnd; wk++) {
+      var dt = C.weekToDate(wk, L.start);
+      if (dt.getDate() <= 7) h += '<div class="month-line" style="left:' + (tableW + (wk - L.weekStart) * pw) + 'px"></div>';
+    }
+    return h + '</div>';
+  }
+  function todayHTML(L, pw, tableW) {
+    var today = new Date(), tw = C.weekIndex(today, L.start);
+    if (tw < L.weekStart || tw > L.weekEnd) return '';
+    var frac = (today - C.startOfWeek(today)) / (7 * 86400000);
+    var x = tableW + (tw - L.weekStart + frac) * pw;
+    return '<div class="today-wire" style="left:' + x + 'px"><span class="today-flag">TODAY</span></div>';
+  }
+
+  function rowHTML(t, L, pw, tableW, colors, interactive) {
+    var p = L.pos[t.id] || { startWeek: 0, finishWeek: taskDuration(t) };
+    var col = colors[t.status || ''] || { fill: '#B8C2CE', text: '#16202B' };
+    var left = (p.startWeek - L.weekStart) * pw;
+    var width = Math.max(6, (p.finishWeek - p.startWeek) * pw);
+    var wideEnough = width > ((t.name || '').length * 6.6 + 22);
+
+    var info;
+    if (interactive) {
+      var canDrag = state.sort === 'priority';
+      info = (canDrag ? '<span class="handle" draggable="true" title="Drag to reprioritize">' + gripSVG() + '</span>' : '<span class="handle" style="visibility:hidden">' + gripSVG() + '</span>') +
+        '<span class="pri">' + (state.tasks.indexOf(t) + 1) + '</span>' +
+        '<span class="statusdot" style="background:' + col.fill + '" title="' + esc(t.status || 'No status') + '"></span>' +
+        (t.dan ? '<span class="danstar" title="Dan-labeled">&#9733;</span>' : '') +
+        '<span class="namecell"><input class="nm" value="' + esc(t.name) + '" aria-label="Name"/>' +
+        '<span class="sub">#' + esc(t.id) + ' · ' + esc(t.status || '—') + '</span></span>' +
+        '<span class="durcell"><input type="number" min="0" step="1" value="' + t.fteWeeks + '" aria-label="FTE-weeks"/><span class="u">fte-wk</span></span>' +
+        '<button class="more" title="Details" aria-label="Details">' + kebabSVG() + '</button>';
+    } else {
+      info = '<span class="pri">' + (state.tasks.indexOf(t) + 1) + '</span>' +
+        '<span class="statusdot" style="background:' + col.fill + '"></span>' +
+        (t.dan ? '<span class="danstar">&#9733;</span>' : '') +
+        '<span class="namecell"><span class="nm" style="border:0;padding:2px 4px">' + esc(t.name) + '</span>' +
+        '<span class="sub">#' + esc(t.id) + '</span></span>' +
+        '<span class="durcell"><span class="mono" style="font-size:12px;font-weight:600">' + t.fteWeeks + '</span><span class="u">wk</span></span>';
+    }
+
+    var bar = '<div class="bar' + (t.dan ? ' dan' : '') + '" data-id="' + esc(t.id) + '" style="left:' + left + 'px;width:' + width + 'px;background:' + col.fill + ';color:' + col.text + '">' +
+      (wideEnough ? '<span class="barlabel">' + esc(t.name) + '</span>' : '') + '</div>' +
+      (wideEnough ? '' : '<div class="bar-outside" style="left:' + (left + width + 8) + 'px">' + esc(t.name) + '</div>');
+
+    return '<div class="row" data-id="' + esc(t.id) + '" data-lane="' + esc(t.lane || 'Unassigned') + '">' +
+      '<div class="rowinfo" style="width:' + tableW + 'px;min-width:' + tableW + 'px">' + info + '</div>' +
+      '<div class="track" data-id="' + esc(t.id) + '" style="width:' + (L.totalWeeks * pw) + 'px">' + bar + '</div></div>';
+  }
+
+  function laneAccent(lane) {
+    var order = lanesOf(state.tasks); var i = order.indexOf(lane);
+    var pal = ['#1E3A5F', '#2FA9A0', '#7C6BD6', '#C77D3B', '#C0556E', '#5C8A3A', '#3B82C4'];
+    return pal[(i < 0 ? 0 : i) % pal.length];
+  }
+  function chevronSVG() { return '<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3l3 4 3-4z"/></svg>'; }
+  function gripSVG() { return '<svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>'; }
+  function kebabSVG() { return '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><circle cx="7" cy="2.5" r="1.4"/><circle cx="7" cy="7" r="1.4"/><circle cx="7" cy="11.5" r="1.4"/></svg>'; }
+
+  function renderLegend(container, interactive) {
+    var colors = statusColors();
+    var h = '<span class="lbl">Status</span>';
+    distinctStatuses().forEach(function (s) {
+      var col = colors[s]; var hidden = !!state.hiddenStatuses[s];
+      h += '<button class="chip" data-status="' + esc(s) + '" aria-pressed="' + (hidden ? 'false' : 'true') + '"' +
+        (interactive ? '' : ' disabled') + '><span class="sw" style="background:' + col.fill + '"></span>' + esc(s || 'No status') + '</button>';
+    });
+    h += '<span class="chip static"><span class="goldsw"></span>Dan-labeled</span>';
+    h += '<span class="chip static"><span class="todaysw"></span>Today</span>';
+    container.innerHTML = h;
+    if (interactive) {
+      $all('.chip[data-status]', container).forEach(function (c) {
+        c.onclick = function () {
+          var s = c.dataset.status;
+          if (state.hiddenStatuses[s]) delete state.hiddenStatuses[s]; else state.hiddenStatuses[s] = true;
+          render();
+        };
+      });
+    }
+  }
+
+  function renderStatus() {
+    var vis = visibleTasks();
+    $('#stTasks').textContent = state.tasks.length + ' use case' + (state.tasks.length === 1 ? '' : 's');
+    $('#stLanes').textContent = lanesOf(state.tasks).length + ' lanes';
+    var L = layoutFor(vis.length ? vis : state.tasks);
+    $('#stSpan').textContent = state.tasks.length ? (L.totalWeeks + ' weeks · to ~' + fmtDate(C.weekToDate(L.weekEnd, L.start))) : '';
+    var hiddenCount = state.tasks.length - vis.length;
+    $('#filterCount').textContent = hiddenCount > 0 ? (vis.length + ' shown · ' + hiddenCount + ' filtered out') : '';
+  }
+
+  /* ========================================================================
+   * INTERACTIONS
+   * ======================================================================*/
+  var dragId = null;
+  function wireBoard(container) {
+    // Bind ONCE per persistent container. renderBoard replaces innerHTML on each
+    // render, but listeners bound to the container itself survive that and would
+    // otherwise stack up — firing N times per click after N renders. Event
+    // delegation means one set of handlers covers all future rebuilt children.
+    if (container.__wiredBoard) return;
+    container.__wiredBoard = true;
+    container.addEventListener('input', function (e) {
+      var row = e.target.closest('.row'); if (!row) return;
+      var t = byId(row.dataset.id); if (!t) return;
+      if (e.target.classList.contains('nm')) {
+        t.name = e.target.value; markDirty();
+        var lbl = container.querySelector('.bar[data-id="' + cssq(String(t.id)) + '"] .barlabel');
+        if (lbl) lbl.textContent = t.name;
+      }
+    });
+    container.addEventListener('change', function (e) {
+      var row = e.target.closest('.row'); if (!row) return;
+      var t = byId(row.dataset.id); if (!t) return;
+      if (e.target.matches('.durcell input')) { t.fteWeeks = Math.max(0, C.parseNumber(e.target.value, t.fteWeeks)); markDirty(); softRefresh(); }
+    });
+    container.addEventListener('click', function (e) {
+      if (e.target.closest('.lanehdr .laneinfo')) {
+        var lane = e.target.closest('.lanehdr').dataset.lane;
+        state.collapsed[lane] = !state.collapsed[lane]; render(); return;
+      }
+      if (e.target.closest('.more') || e.target.closest('.pri') || e.target.closest('.sub') || e.target.closest('.statusdot') || e.target.closest('.danstar')) {
+        var row = e.target.closest('.row'); if (row) openDrawer(row.dataset.id); return;
+      }
+      var bar = e.target.closest('.bar'); if (bar) openDrawer(bar.dataset.id);
+    });
+
+    container.addEventListener('dragstart', function (e) {
+      var hd = e.target.closest('.handle[draggable="true"]'); if (!hd) return;
+      var row = hd.closest('.row'); dragId = row.dataset.id; row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {}
+    });
+    container.addEventListener('dragover', function (e) {
+      if (dragId == null) return; var row = e.target.closest('.row'); if (!row) return;
+      e.preventDefault(); clearCues(container);
+      var r = row.getBoundingClientRect();
+      row.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-above' : 'drop-below');
+    });
+    container.addEventListener('drop', function (e) {
+      if (dragId == null) return; var row = e.target.closest('.row'); if (!row) return;
+      e.preventDefault();
+      var r = row.getBoundingClientRect();
+      moveTask(dragId, row.dataset.id, e.clientY < r.top + r.height / 2);
+    });
+    container.addEventListener('dragend', function () {
+      dragId = null; clearCues(container);
+      $all('.row.dragging', container).forEach(function (x) { x.classList.remove('dragging'); });
+    });
+    wireTooltips(container);
+  }
+  function clearCues(c) { $all('.drop-above,.drop-below', c).forEach(function (x) { x.classList.remove('drop-above', 'drop-below'); }); }
+
+  function wireTooltips(container) {
+    if (container.__wiredTip) return;
+    container.__wiredTip = true;
+    var tip = $('#tip');
+    container.addEventListener('mousemove', function (e) {
+      var el = e.target.closest('.bar'); if (!el) { tip.style.display = 'none'; return; }
+      var t = byId(el.dataset.id); if (!t) return;
+      var L = layoutFor(state.tasks), p = L.pos[t.id];
+      var due = t.deliveryISO ? fmtDate(C.parseDate(t.deliveryISO)) : '—';
+      var s = p ? fmtDate(C.weekToDate(p.startWeek, L.start)) : '—';
+      tip.innerHTML = '<b>' + esc(t.name) + '</b> <span class="mono">#' + esc(t.id) + '</span><br>' +
+        '<span class="k">Lane</span> ' + esc(t.lane || '—') + '<br>' +
+        '<span class="k">Status</span> ' + esc(t.status || '—') + (t.dan ? '  <span style="color:#E6B422">&#9733; dan</span>' : '') + '<br>' +
+        '<span class="k">FTE-weeks</span> ' + t.fteWeeks + '  <span class="k">·</span>  ' + s + ' &rarr; <b>' + due + '</b>';
+      tip.style.display = 'block';
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 290 > window.innerWidth) x = e.clientX - 290;
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    });
+    container.addEventListener('mouseleave', function () { $('#tip').style.display = 'none'; });
+  }
+
+  function byId(id) { for (var i = 0; i < state.tasks.length; i++) if (String(state.tasks[i].id) === String(id)) return state.tasks[i]; return null; }
+  function indexOf(id) { for (var i = 0; i < state.tasks.length; i++) if (String(state.tasks[i].id) === String(id)) return i; return -1; }
+  function moveTask(fromId, toId, before) {
+    var from = indexOf(fromId), to = indexOf(toId);
+    if (from < 0 || to < 0 || from === to) { render(); return; }
+    var moved = state.tasks[from], target = state.tasks[to];
+    moved.lane = target.lane; // cross-lane drag reassigns discipline
+    state.tasks.splice(from, 1);
+    to = indexOf(toId);
+    state.tasks.splice(before ? to : to + 1, 0, moved);
+    markDirty(); render();
+  }
+  function moveBy(id, delta) {
+    var i = indexOf(id); if (i < 0) return;
+    var j = Math.max(0, Math.min(state.tasks.length - 1, i + delta));
+    if (i === j) return;
+    var it = state.tasks.splice(i, 1)[0]; state.tasks.splice(j, 0, it); markDirty();
+  }
+  function nextId() {
+    var max = 0; state.tasks.forEach(function (t) { var n = parseInt(t.id, 10); if (isFinite(n) && n > max) max = n; });
+    return max + 1;
+  }
+  function addTask() {
+    var lane = state.laneOrder[0] || 'Unassigned';
+    var start = C.parseDate(state.startISO) || new Date();
+    var due = C.weekToDate(6, start);
+    var statuses = distinctStatuses().filter(Boolean);
+    var t = { id: nextId(), name: 'New use case', priority: state.tasks.length + 1,
+      deliveryISO: isoOf(due), fteWeeks: 3, status: statuses[0] || 'Not Scoped', lane: lane, dan: false, notes: '' };
+    state.tasks.push(t); markDirty(); render(); openDrawer(t.id);
+  }
+  function deleteTask(id) {
+    var i = indexOf(id); if (i < 0) return;
+    state.tasks.splice(i, 1); markDirty(); closeDrawer(); render();
+  }
+
+  /* ---- drawer ------------------------------------------------------------ */
+  function openDrawer(id) {
+    var t = byId(id); if (!t) return;
+    var lanes = lanesOf(state.tasks);
+    var statuses = distinctStatuses().filter(Boolean);
+    var d = $('#drawer');
+    d.innerHTML =
+      '<header><h3 id="dkName">' + esc(t.name) + '</h3><span class="uid">#' + esc(t.id) + '</span>' +
+      '<button class="btn ghost" id="dkClose" style="margin-left:auto">Close</button></header>' +
+      '<div class="body-scroll">' +
+      field('Name', '<input type="text" id="dkNm" value="' + esc(t.name) + '">') +
+      '<div class="two">' +
+      field('Priority (position)', '<input type="number" min="1" id="dkPri" value="' + (indexOf(id) + 1) + '">') +
+      field('FTE-weeks', '<input type="number" min="0" step="1" id="dkFte" value="' + t.fteWeeks + '">') +
+      '</div>' +
+      field('Delivery date', '<input type="date" id="dkDue" value="' + esc(t.deliveryISO || '') + '">') +
+      field('Status', selectHTML('dkStatus', statuses, t.status, true)) +
+      field('Lane', selectHTML('dkLane', lanes, t.lane, true)) +
+      '<div class="field"><label>Dan-label (special use case)</label><div class="toggle">' +
+      '<button class="switch" id="dkDan" aria-pressed="' + (!!t.dan) + '"></button><span>Flag with a gold ring in the chart</span></div></div>' +
+      field('Notes', '<textarea id="dkNotes">' + esc(t.notes || '') + '</textarea>') +
+      '</div>' +
+      '<footer><button class="btn small" id="dkUp">&uarr; Up</button><button class="btn small" id="dkDown">&darr; Down</button>' +
+      '<button class="btn danger" id="dkDel">Delete</button></footer>';
+    $('#scrim').classList.add('show'); d.classList.add('show'); d.dataset.id = id;
+    wireDrawer(t);
+  }
+  function selectHTML(id, options, current, allowNew) {
+    var opts = options.map(function (o) { return '<option value="' + esc(o) + '"' + (o === current ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('');
+    if (allowNew && current && options.indexOf(current) < 0) opts = '<option value="' + esc(current) + '" selected>' + esc(current) + '</option>' + opts;
+    opts += '<option value="__new__">+ New…</option>';
+    return '<select id="' + id + '">' + opts + '</select>';
+  }
+  function wireDrawer(t) {
+    $('#dkClose').onclick = closeDrawer;
+    $('#dkNm').oninput = function () { t.name = this.value; $('#dkName').textContent = this.value; markDirty(); softRefresh(); };
+    $('#dkFte').onchange = function () { t.fteWeeks = Math.max(0, C.parseNumber(this.value, t.fteWeeks)); markDirty(); softRefresh(); };
+    $('#dkDue').onchange = function () { t.deliveryISO = this.value; markDirty(); softRefresh(); };
+    $('#dkNotes').oninput = function () { t.notes = this.value; markDirty(); };
+    $('#dkPri').onchange = function () {
+      var pos = Math.max(1, Math.min(state.tasks.length, C.parseNumber(this.value, indexOf(t.id) + 1) | 0));
+      var cur = indexOf(t.id); var it = state.tasks.splice(cur, 1)[0]; state.tasks.splice(pos - 1, 0, it);
+      markDirty(); softRefresh();
+    };
+    $('#dkStatus').onchange = function () {
+      if (this.value === '__new__') { var v = prompt('New status name:'); if (v) t.status = v.trim(); }
+      else t.status = this.value;
+      markDirty(); openDrawer(t.id); softRefresh();
+    };
+    $('#dkLane').onchange = function () {
+      if (this.value === '__new__') { var v = prompt('New lane name:'); if (v) { t.lane = v.trim(); if (state.laneOrder.indexOf(t.lane) < 0) state.laneOrder.push(t.lane); } }
+      else t.lane = this.value;
+      markDirty(); openDrawer(t.id); softRefresh();
+    };
+    $('#dkDan').onclick = function () { t.dan = !t.dan; this.setAttribute('aria-pressed', t.dan); markDirty(); softRefresh(); };
+    $('#dkUp').onclick = function () { moveBy(t.id, -1); softRefresh(); };
+    $('#dkDown').onclick = function () { moveBy(t.id, 1); softRefresh(); };
+    $('#dkDel').onclick = function () { if (confirm('Delete "' + t.name + '"?')) deleteTask(t.id); };
+  }
+  function softRefresh() {
+    if (state.view !== 'roadmap') { render(); return; }
+    renderBoard($('#mount'), true); renderLegend($('#legend'), true); renderStatus();
+  }
+  function closeDrawer() { $('#drawer').classList.remove('show'); $('#scrim').classList.remove('show'); }
+  function field(label, inner) { return '<div class="field"><label>' + label + '</label>' + inner + '</div>'; }
+
+  /* ========================================================================
+   * IMPORT / MAPPING
+   * ======================================================================*/
+  var FIELDS = [
+    { key: 'id', label: 'Unique id (#)', req: true, hints: ['#', 'uid', 'id', 'identifier', 'key', 'number'] },
+    { key: 'name', label: 'Name', req: true, hints: ['name', 'title', 'use case', 'uc', 'capability', 'task'] },
+    { key: 'fte', label: 'FTE-weeks (bar length)', req: true, hints: ['fte', 'effort', 'weeks', 'duration', 'size', 'estimate', 'man'] },
+    { key: 'delivery', label: 'Delivery date', req: false, hints: ['delivery', 'due', 'deadline', 'target', 'completion', 'finish', 'date'] },
+    { key: 'priority', label: 'Priority', req: false, hints: ['priority', 'prio', 'rank', 'order'] },
+    { key: 'status', label: 'Status (color)', req: false, hints: ['status', 'state', 'scoping', 'phase'] },
+    { key: 'lane', label: 'Lane (swimlane)', req: false, hints: ['lane', 'discipline', 'team', 'group', 'swimlane', 'area', 'track'] },
+    { key: 'dan', label: 'Dan-label (gold)', req: false, hints: ['dan', 'special', 'flag', 'highlight', 'marker'] },
+  ];
+  function guessMap(headers) {
+    var map = {};
+    FIELDS.forEach(function (f) {
+      for (var i = 0; i < headers.length; i++) {
+        var hh = headers[i].toLowerCase().trim();
+        if (f.key === 'id' && headers[i].trim() === '#') { map[f.key] = headers[i]; return; }
+        for (var j = 0; j < f.hints.length; j++) { if (hh.indexOf(f.hints[j]) >= 0) { map[f.key] = headers[i]; return; } }
+      }
+    });
+    return map;
+  }
+  function recordsToTasks(headers, records, map) {
+    var tasks = records.map(function (r) {
+      var due = '';
+      if (map.delivery && r[map.delivery]) { var dd = C.parseDate(r[map.delivery]); if (dd) due = isoOf(dd); }
+      return {
+        id: map.id && String(r[map.id]).trim() ? String(r[map.id]).trim() : '',
+        name: (map.name ? String(r[map.name]) : '').trim() || 'Untitled',
+        priority: map.priority ? C.parseNumber(r[map.priority], 9999) : 9999,
+        deliveryISO: due,
+        fteWeeks: Math.max(0, C.parseNumber(map.fte ? r[map.fte] : '', 2)),
+        status: map.status ? String(r[map.status]).trim() : '',
+        lane: (map.lane ? String(r[map.lane]).trim() : '') || 'Unassigned',
+        dan: map.dan ? C.parseBool(r[map.dan]) : false,
+        notes: '',
+      };
+    });
+    // assign ids where missing
+    var maxId = 0; tasks.forEach(function (t) { var n = parseInt(t.id, 10); if (isFinite(n) && n > maxId) maxId = n; });
+    tasks.forEach(function (t) { if (!t.id) t.id = String(++maxId); });
+    // initial order by priority, then renumber to positions
+    tasks.sort(function (a, b) { return a.priority - b.priority || (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0); });
+    return tasks;
+  }
+  /** Distinct lanes by first appearance in this exact task list (deterministic). */
+  function distinctLanes(tasks) {
+    var seen = {}, out = [];
+    tasks.forEach(function (t) { var l = t.lane || 'Unassigned'; if (!(l in seen)) { seen[l] = 1; out.push(l); } });
+    return out;
+  }
+  function adoptTasks(tasks) {
+    state.tasks = tasks;
+    // Derive lane order FRESH from the incoming data. Inheriting the previous
+    // dataset's order would make an imported file render its lanes in a stale
+    // sequence, so we compute first-appearance order from these tasks alone.
+    state.laneOrder = distinctLanes(tasks);
+    state.collapsed = {}; state.hiddenStatuses = {};
+  }
+
+  var importParsed = null;
+  function openImport() {
+    $('#modalTitle').textContent = 'Import use cases from CSV';
+    $('#modalContent').innerHTML =
+      '<div class="tabsmini"><button data-it="file" aria-selected="true">Upload file</button>' +
+      '<button data-it="paste" aria-selected="false">Paste text</button></div>' +
+      '<div id="itFile"><div class="dropzone" id="dropzone">Drop a .csv file here, or ' +
+      '<button class="btn small" id="pickFile">choose a file</button></div></div>' +
+      '<div id="itPaste" style="display:none"><textarea class="paste" id="pasteArea" placeholder="#,Name,priority,deliveryDate,FTE-weeks,status,lane,dan-label"></textarea>' +
+      '<button class="btn small" id="parsePaste" style="margin-top:8px">Parse</button></div><div id="mapArea"></div>';
+    $('#modalFooter').innerHTML = '<button class="btn" id="importCancel">Cancel</button><button class="btn primary" id="importApply" disabled>Import</button>';
+    $('#modal').classList.add('show');
+    $all('.tabsmini button').forEach(function (b) {
+      b.onclick = function () {
+        $all('.tabsmini button').forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
+        b.setAttribute('aria-selected', 'true');
+        $('#itFile').style.display = b.dataset.it === 'file' ? '' : 'none';
+        $('#itPaste').style.display = b.dataset.it === 'paste' ? '' : 'none';
+      };
+    });
+    $('#pickFile').onclick = function () { $('#fileInput').click(); };
+    $('#parsePaste').onclick = function () { ingest($('#pasteArea').value); };
+    $('#importCancel').onclick = closeModal;
+    var dz = $('#dropzone');
+    dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', function () { dz.classList.remove('over'); });
+    dz.addEventListener('drop', function (e) { e.preventDefault(); dz.classList.remove('over'); var f = e.dataTransfer.files[0]; if (f) readFile(f); });
+  }
+  function readFile(file) { var r = new FileReader(); r.onload = function () { ingest(String(r.result)); }; r.onerror = function () { toast('Could not read that file.', 'err'); }; r.readAsText(file); }
+  function ingest(text) {
+    if (!text || !text.trim()) { toast('No data found.', 'err'); return; }
+    importParsed = C.parseTable(text);
+    if (!importParsed.headers.length) { toast('Could not detect columns.', 'err'); return; }
+    renderMapping();
+  }
+  function renderMapping() {
+    var headers = importParsed.headers, gm = guessMap(headers);
+    var rows = FIELDS.map(function (f) {
+      var opts = '<option value="">— none —</option>' + headers.map(function (h) {
+        return '<option value="' + esc(h) + '"' + (h === gm[f.key] ? ' selected' : '') + '>' + esc(h) + '</option>';
+      }).join('');
+      return '<div class="lab">' + f.label + (f.req ? ' <span class="req">*</span>' : '') + '</div><select data-field="' + f.key + '">' + opts + '</select>';
+    }).join('');
+    var prev = importParsed.records.slice(0, 5);
+    var thead = '<tr>' + headers.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr>';
+    var tbody = prev.map(function (r) { return '<tr>' + headers.map(function (h) { return '<td>' + esc(r[h]) + '</td>'; }).join('') + '</tr>'; }).join('');
+    $('#mapArea').innerHTML =
+      '<div style="margin-top:16px;font-size:13px;color:var(--muted)">Detected <b>' + importParsed.records.length + '</b> rows, delimiter <span class="mono">' +
+      (importParsed.delimiter === '\t' ? 'TAB' : importParsed.delimiter) + '</span>. Confirm mapping:</div>' +
+      '<div class="maprow" style="margin-top:10px">' + rows + '</div>' +
+      '<div style="margin-top:16px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Preview</div>' +
+      '<div style="overflow:auto"><table class="preview-table"><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table></div>';
+    $('#importApply').disabled = false;
+    $('#importApply').onclick = applyImport;
+  }
+  function applyImport() {
+    var map = {}; $all('#mapArea select').forEach(function (s) { map[s.dataset.field] = s.value; });
+    if (!map.id || !map.name || !map.fte) { toast('# , Name and FTE-weeks are required.', 'err'); return; }
+    adoptTasks(recordsToTasks(importParsed.headers, importParsed.records, map));
+    markDirty(); closeModal(); render();
+    toast('Imported ' + state.tasks.length + ' use cases.', 'ok');
+  }
+  function closeModal() { $('#modal').classList.remove('show'); }
+
+  /* ========================================================================
+   * CANONICAL / ANALYSIS CSV  +  PERSISTENCE
+   * ======================================================================*/
+  var CANON = ['#', 'Name', 'priority', 'deliveryDate', 'FTE-weeks', 'status', 'lane', 'dan-label'];
+  function canonicalRecords() {
+    return state.tasks.map(function (t, i) {
+      var due = t.deliveryISO ? C.usDate(C.parseDate(t.deliveryISO)) : '';
+      return { '#': t.id, Name: t.name, priority: i + 1, deliveryDate: due, 'FTE-weeks': t.fteWeeks, status: t.status || '', lane: t.lane || '', 'dan-label': t.dan ? 'TRUE' : 'FALSE' };
+    });
+  }
+  function analysisCSV() {
+    var L = layoutFor(state.tasks);
+    var headers = CANON.concat(['DurationWeeks', 'ScheduledStartDate', 'ScheduledFinishDate', 'ScheduledStartWeek', 'ScheduledFinishWeek']);
+    var recs = state.tasks.map(function (t, i) {
+      var p = L.pos[t.id] || {}; var due = t.deliveryISO ? C.usDate(C.parseDate(t.deliveryISO)) : '';
+      return { '#': t.id, Name: t.name, priority: i + 1, deliveryDate: due, 'FTE-weeks': t.fteWeeks, status: t.status || '', lane: t.lane || '', 'dan-label': t.dan ? 'TRUE' : 'FALSE',
+        DurationWeeks: taskDuration(t),
+        ScheduledStartDate: p.startWeek == null ? '' : C.usDate(C.weekToDate(p.startWeek, L.start)),
+        ScheduledFinishDate: p.finishWeek == null ? '' : C.usDate(C.weekToDate(p.finishWeek, L.start)),
+        ScheduledStartWeek: p.startWeek == null ? '' : p.startWeek, ScheduledFinishWeek: p.finishWeek == null ? '' : p.finishWeek };
+    });
+    return C.toCSV(headers, recs, ',');
+  }
+  function download(filename, text) {
+    var blob = new Blob(['\ufeff' + text], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  }
+  function safeName(s) { return String(s || 'roadmap').replace(/[^a-z0-9\-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'roadmap'; }
+
+  function save() {
+    if (!state.tasks.length) { toast('Nothing to save yet.', 'err'); return; }
+    if (state.connection.mode === 'connected') {
+      var body = JSON.stringify({ columns: CANON, rows: canonicalRecords() });
+      $('#btnSave').disabled = true;
+      fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          $('#btnSave').disabled = false;
+          if (res.ok && res.j.ok) { clearDirty(); toast('Saved to ' + res.j.path + (res.j.backup ? ' (backup written)' : ''), 'ok'); }
+          else { toast('Save failed: ' + (res.j && res.j.error || 'unknown'), 'err'); }
+        })
+        .catch(function (e) { $('#btnSave').disabled = false; toast('Save failed: ' + e.message, 'err'); });
+    } else {
+      download(safeName(state.projectName) + '.csv', C.toCSV(CANON, canonicalRecords(), ','));
+      clearDirty(); toast('Downloaded CSV.', 'ok');
+    }
+  }
+  function reloadFromDisk() {
+    if (state.dirty && !confirm('Discard unsaved changes and reload from disk?')) return;
+    loadFromDisk(true);
+  }
+  function loadFromDisk(announce) {
+    fetch('/api/data').then(function (r) { return r.json(); }).then(function (d) {
+      if (!d || !d.columns) { if (announce) toast('No data on disk yet — add use cases and Save.', 'ok'); return; }
+      var map = guessMap(d.columns);
+      adoptTasks(recordsToTasks(d.columns, d.rows, map));
+      clearDirty(); render();
+      if (announce) toast('Reloaded from disk.', 'ok');
+    }).catch(function (e) { toast('Load failed: ' + e.message, 'err'); });
+  }
+
+  /* ========================================================================
+   * PRESENT
+   * ======================================================================*/
+  function renderPresent() {
+    $('#pTitle').textContent = state.projectName;
+    var L = layoutFor(state.tasks);
+    $('#pSub').textContent = state.tasks.length
+      ? state.tasks.length + ' use cases · ' + lanesOf(state.tasks).length + ' lanes · start ' + fmtDate(C.startOfWeek(L.start)) + ' · horizon ' + L.totalWeeks + ' weeks'
+      : 'No use cases loaded';
+    renderBoard($('#pBoard'), false);
+    renderLegend($('#pLegend'), false);
+  }
+
+  /* ========================================================================
+   * SAMPLE (the uploaded dummy rows, so the preview is representative)
+   * ======================================================================*/
+  function loadSample() {
+    var csv = '#,Name,priority,deliveryDate,FTE-weeks,status,lane,dan-label\n' +
+      '1,name1,4,9/18/2026,5,Not Scoped,Requirements Engineering,FALSE\n' +
+      '2,name2,11,10/19/2026,2,Scoping Needs Improvement,Requirements Engineering,FALSE\n' +
+      '3,name3,9,12/9/2026,10,Not Scoped,Requirements Engineering,FALSE\n' +
+      '4,name4,1,10/22/2026,8,Scoping Needs Improvement,Requirements Engineering,FALSE\n' +
+      '5,name5,10,9/2/2026,6,Scoping Needs Improvement,Requirements Engineering,FALSE\n' +
+      '6,name6,2,9/17/2026,2,Currently Scoped,Requirements Engineering,FALSE\n' +
+      '7,name7,3,9/18/2026,3,Not Scoped,Requirements Engineering,TRUE\n' +
+      '8,name8,5,11/10/2026,6,Not Scoped,Requirements Engineering,FALSE\n' +
+      '9,name9,6,1/1/2027,7,Not Scoped,Model Analysis,FALSE\n' +
+      '10,name10,8,11/27/2026,9,Not Scoped,Model Making,FALSE\n' +
+      '11,name11,12,11/16/2026,1,Currently Scoped,Model Analysis,FALSE\n' +
+      '12,name12,7,9/2/2026,8,Not Scoped,Model Analysis,FALSE\n' +
+      '13,name13,13,11/26/2026,5,Not Scoped,Requirements Engineering,FALSE\n';
+    var t = C.parseTable(csv);
+    adoptTasks(recordsToTasks(t.headers, t.records, guessMap(t.headers)));
+    markDirty(); render();
+  }
+
+  /* ========================================================================
+   * TOAST + INIT
+   * ======================================================================*/
+  var toastTimer = null;
+  function toast(msg, kind) {
+    var el = $('#toast'); el.className = 'toast show' + (kind === 'err' ? ' err' : '');
+    el.innerHTML = (kind === 'ok' ? '<span class="ok">&#10003;</span>' : '') + esc(msg);
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.className = 'toast'; }, 3200);
+  }
+  function setView(v) { state.view = v; render(); }
+
+  function init() {
+    $('#startDate').value = state.startISO;
+    $all('.tab').forEach(function (b) { b.onclick = function () { setView(b.dataset.view); }; });
+    $('#projName').oninput = function () { state.projectName = this.value; $('#pTitle').textContent = this.value; };
+    $('#btnImport').onclick = openImport;
+    $('#btnSave').onclick = save;
+    $('#startDate').onchange = function () { state.startISO = this.value || mondayISO(); markDirty(); render(); };
+    $all('#sortSeg button').forEach(function (b) { b.onclick = function () { state.sort = b.dataset.sort; render(); }; });
+    $all('#densitySeg button').forEach(function (b) { b.onclick = function () { state.density = b.dataset.density; render(); }; });
+    $('#zoom').oninput = function () { state.pxPerWeek = +this.value; if (state.view === 'roadmap') renderBoard($('#mount'), true); };
+    $('#search').oninput = function () { state.search = this.value; render(); };
+    $('#danOnly').onclick = function () { state.danOnly = !state.danOnly; render(); };
+    $('#btnAdd').onclick = addTask;
+    $('#btnFit').onclick = fitZoom;
+    $('#btnCollapse').onclick = toggleCollapseAll;
+    $('#btnDownloadCanonical').onclick = function () { if (state.tasks.length) download(safeName(state.projectName) + '.csv', C.toCSV(CANON, canonicalRecords(), ',')); };
+    $('#btnDownloadAnalysis').onclick = function () { if (state.tasks.length) download(safeName(state.projectName) + '-analysis.csv', analysisCSV()); };
+    $('#btnReload').onclick = reloadFromDisk;
+    $('#scrim').onclick = closeDrawer;
+    $('#modalClose').onclick = closeModal;
+    $('#btnExitPresent').onclick = function () { setView('roadmap'); };
+    $('#fileInput').onchange = function () { if (this.files[0]) readFile(this.files[0]); this.value = ''; };
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
+      if (e.key === 'Escape') { closeDrawer(); closeModal(); if (state.view === 'present') setView('roadmap'); }
+    });
+
+    // Detect the Python companion; fall back to standalone (browser) mode.
+    tryConnect();
+    render();
+  }
+
+  function toggleCollapseAll() {
+    var lanes = lanesOf(state.tasks);
+    var anyOpen = lanes.some(function (l) { return !state.collapsed[l]; });
+    lanes.forEach(function (l) { state.collapsed[l] = anyOpen; });
+    $('#btnCollapse').textContent = anyOpen ? 'Expand all' : 'Collapse all';
+    render();
+  }
+  function fitZoom() {
+    var L = layoutFor(visibleTasks().length ? visibleTasks() : state.tasks);
+    if (!L.totalWeeks) return;
+    var avail = window.innerWidth - 340 - 60;
+    state.pxPerWeek = Math.max(8, Math.min(56, Math.floor(avail / L.totalWeeks)));
+    render();
+  }
+  function tryConnect() {
+    if (location.protocol === 'file:') return; // opened as a bare file
+    fetch('/api/health', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (h) {
+      if (h && h.ok) {
+        state.connection = { mode: 'connected', file: h.file, exists: h.exists };
+        renderControls();
+        if (h.exists) loadFromDisk(false);
+      }
+    }).catch(function () { /* standalone */ });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+</script>
+</body>
+</html>
